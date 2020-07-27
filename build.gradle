@@ -1,0 +1,79 @@
+plugins {
+	id 'org.springframework.boot' version '2.2.6.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'java'
+	id 'checkstyle'
+	id "com.github.spotbugs" version "4.0.8"
+}
+
+ext {
+	set('keycloakVersion', '10.0.0')
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.keycloak.bom:keycloak-adapter-bom:10.0.0"
+	}
+}
+
+dependencies {
+	// Spring
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Keycloak
+	implementation 'org.keycloak:keycloak-spring-boot-starter'
+	implementation 'org.keycloak:keycloak-spring-security-adapter'
+
+	// Test
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation "org.keycloak:keycloak-test-helper:10.0.0"
+
+	spotbugs "com.github.spotbugs:spotbugs:${spotbugs.toolVersion.get()}"
+	compileOnly "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}"
+}
+
+// Gradle Plugins Configurations
+checkstyle {
+	toolVersion '8.27'
+	configFile = file("config/checkstyle/google_checks.xml")
+	ignoreFailures = true
+}
+
+spotbugs {
+	toolVersion = '4.0.2'
+	reportLevel = 'default'
+}
+
+test {
+	useJUnitPlatform()
+}
+
+// customized gradle task
+tasks.withType(Checkstyle) {
+	reports {
+		xml.enabled false
+		html.enabled true
+	}
+}
